@@ -6,25 +6,20 @@ var Enemy = function() {
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
-    //enemy start outside of the screen
-    this.x = -100;
-
-    //chosing random enemy's position
-    var position = Math.random() * 10;
-    if (position <= 3) {
-        this.y = 50;
-    } else if (position <= 7) {
-        this.y = 140;
-    } else {
-        this.y = 220;
-    }
 };
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
-    console.log(this.x);    
-        this.x = this.x * dt;
+    // enemy end the trip and start again
+    if (this.x > 500) {
+        this.x = -100;// - (Math.random() * 500);
+    } else {
+        // it grows based on the speed of the enemy
+        this.x += this.speed*dt;
+    }
+
+    
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
@@ -55,24 +50,28 @@ class Player {
     handleInput(mov) {
         switch (mov) {
             case 'up':
-                if (this.y > -50) {
+                if (this.y > 40) {
                     this.y -=90;
-                };
+                } else {
+                    // game was won and the player start at star position
+                    this.x = 200;
+                    this.y = 400;
+                }
                 break;
             case 'left':
                 if (this.x > 0){
                     this.x -=100;
-                };
+                }
                 break;
             case 'right':
                 if (this.x < 400) {
                     this.x +=100;
-                };
+                }
                 break;
             case 'down':
                 if(this.y < 400) {
                     this.y +=90;
-                };
+                }
                 break;
         };
     };
@@ -81,12 +80,42 @@ class Player {
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 let allEnemies = [];
-for (let i = 0; i < 10; i++) {
+//create 5 enemies
+for (let i = 1; i <= 5; i++) {
     let enemy = new Enemy();
+    if (i <= 2) {
+        //when start (not all at the same time)
+        enemy.x = -100*i;
+        //position (witch road)
+        enemy.y = 60;
+        //speed
+        enemy.speed = 400;
+    } else if (i <= 3) {
+        enemy.x = -100*i;
+        enemy.y = 140;
+        enemy.speed = 200;
+    } else {
+        enemy.x = -100*i;
+        enemy.y = 225;
+        enemy.speed = 100;
+    }
+    //when start (not all at the same time)
+    enemy.x = Math.random() * -400;
     allEnemies.push(enemy);
 }
 // Place the player object in a variable called player
 var player = new Player();
+
+
+// if they collide then the player starts from the beginning
+function checkCollisions() {
+    for (const enemy of allEnemies) {
+        if (enemy.x > (player.x -70) & (enemy.x < (player.x + 70)) & (enemy.y > (player.y - 70)) & (enemy.y < (player.y + 70))) {
+        player.x = 200;
+        player.y = 400;
+        }
+    }
+};
 
 
 
