@@ -1,3 +1,6 @@
+//Scores
+let score = document.querySelector('#score');
+
 // Enemies our player must avoid
 var Enemy = function() {
     // Variables applied to each of our instances go here,
@@ -54,6 +57,7 @@ class Player {
                     this.y -=90;
                 } else {
                     // game was won and the player start at star position
+                    score.innerHTML ++;
                     this.x = 200;
                     this.y = 400;
                 }
@@ -80,27 +84,34 @@ class Player {
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 let allEnemies = [];
+// Space between two enemies
+let spaceBetween = false;
+
 //create 5 enemies
-for (let i = 1; i <= 5; i++) {
+for (let i = 0; i <= 6; i++) {
     let enemy = new Enemy();
     if (i <= 2) {
-        //when start (not all at the same time)
-        enemy.x = -100*i;
         //position (witch road)
         enemy.y = 60;
         //speed
         enemy.speed = 400;
-    } else if (i <= 3) {
-        enemy.x = -100*i;
+    } else if (i <= 4) {
         enemy.y = 140;
         enemy.speed = 200;
     } else {
-        enemy.x = -100*i;
         enemy.y = 225;
         enemy.speed = 100;
     }
+
     //when start (not all at the same time)
-    enemy.x = Math.random() * -400;
+    if (spaceBetween == false) {
+        enemy.x = -100;
+        spaceBetween = true;
+    } else {
+        enemy.x = -400;
+        spaceBetween = false;
+    }
+    
     allEnemies.push(enemy);
 }
 // Place the player object in a variable called player
@@ -110,9 +121,10 @@ var player = new Player();
 // if they collide then the player starts from the beginning
 function checkCollisions() {
     for (const enemy of allEnemies) {
-        if (enemy.x > (player.x -70) & (enemy.x < (player.x + 70)) & (enemy.y > (player.y - 70)) & (enemy.y < (player.y + 70))) {
-        player.x = 200;
-        player.y = 400;
+        if (enemy.x > (player.x -70) & (enemy.x < (player.x + 40)) & (enemy.y > (player.y - 70)) & (enemy.y < (player.y + 70))) {
+            score.innerHTML --;
+            player.x = 200;
+            player.y = 400;
         }
     }
 };
