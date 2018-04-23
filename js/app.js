@@ -1,6 +1,9 @@
 //Scores
-let score = document.querySelector('#score');
-
+let score = document.querySelector('.score');
+score.innerHTML = 0;
+let saved = document.querySelector('.saved');
+saved.innerHTML = 0;
+let tryAgainButton = document.querySelector('.close-button');
 // Enemies our player must avoid
 var Enemy = function() {
     // Variables applied to each of our instances go here,
@@ -9,17 +12,26 @@ var Enemy = function() {
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
+    this.backwards = false;
 };
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
     // enemy end the trip and start again
-    if (this.x > 500) {
-        this.x = -100;// - (Math.random() * 500);
+    if (this.sprite == 'images/enemy-bug.png') {
+        if (this.x > 500) {
+            this.x = -100;
+        } else {
+            // left to right bug`s direction for the first and third rows
+            // it grows based on the speed of the enemy
+            this.x += this.speed*dt;
+        }
+    // right to left bug`s direction for the seconds row
+    } else if (this.x < -100) {
+        this.x = 500;
     } else {
-        // it grows based on the speed of the enemy
-        this.x += this.speed*dt;
+        this.x -= this.speed*dt;
     }
 
     
@@ -38,10 +50,30 @@ Enemy.prototype.render = function() {
 // a handleInput() method.
 class Player {
     constructor () {
-        this.sprite = 'images/char-boy.png';
+        this.spriteIndex = 0;
+        this.allSprite =  [
+            'images/char-boy.png',
+            'images/char-cat-girl.png',
+            'images/char-horn-girl.png',
+            'images/char-pink-girl.png',
+            'images/char-princess-girl.png'
+        ]
+        this.sprite = this.allSprite[this.spriteIndex];
         this.x = 200;
         this.y = 400;
     };
+
+    // change character
+    changeSprite() {
+        if (this.spriteIndex < this.allSprite.length-1) {
+            this.spriteIndex++;
+        } else {
+            this.spriteIndex = 0;
+            endGame();
+
+        }
+        this.sprite = this.allSprite[this.spriteIndex];
+    }
     
     update (dt) {
     };
@@ -51,35 +83,62 @@ class Player {
     };
 
     handleInput(mov) {
+        let collide = false;
         switch (mov) {
             case 'up':
                 if (this.y > 40) {
-                    this.y -=90;
+                    //player can`t move if: Rocks collision
+                    collide = collideWith(allRocks, this.x, this.y, 0, 0, 100, 0);
+                    if (collide == false) {
+                        this.y -=90;
+                    }    
                 } else {
-                    // game was won and the player start at star position
-                    score.innerHTML ++;
+                    // game was won and the new player start at starting position
+                    allShip.push(new Ship(this.x, this.y));
+                    saved.innerHTML++;
+                    player.changeSprite();
                     this.x = 200;
                     this.y = 400;
                 }
                 break;
             case 'left':
                 if (this.x > 0){
+                    collide = collideWith(allRocks, this.x, this.y, 100, 0, 0, 0);
+                    if (collide == false) {
                     this.x -=100;
+                    }
                 }
                 break;
             case 'right':
                 if (this.x < 400) {
-                    this.x +=100;
+                    collide = collideWith(allRocks, this.x, this.y, 0, 100, 0, 0);
+                    if (collide == false) {
+                        this.x +=100;
+                    }
                 }
                 break;
             case 'down':
-                if(this.y < 400) {
-                    this.y +=90;
+                if (this.y < 400) {
+                    collide = collideWith(allRocks, this.x, this.y, 0, 0, 0, 100);
+                    if (collide == false) {
+                        this.y +=90;
+                    }
                 }
                 break;
         };
     };
 };
+
+// return true if the want to move in the rock's direction
+function collideWith (arrayToProv, x, y, left, right, up, down) {
+    let ouch = false;
+    for (const one of arrayToProv) {
+        if (one.x > (x -70 - left) & (one.x < (x + 70 + right) & (one.y > (y - 70 - up)) & (one.y < (y + 70 + down)))) {
+            ouch = true;
+        }
+    }
+    return ouch;
+}
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
@@ -91,13 +150,17 @@ let spaceBetween = false;
 for (let i = 0; i <= 6; i++) {
     let enemy = new Enemy();
     if (i <= 2) {
-        //position (witch road)
+        //position (witch road: 60 first road, 140 for the second and 225 for the third)
         enemy.y = 60;
         //speed
-        enemy.speed = 400;
+        enemy.speed = 300;
+
+    // the enemies of the seconds row walk backwards
     } else if (i <= 4) {
+        enemy.backwards = true;
         enemy.y = 140;
         enemy.speed = 200;
+        enemy.sprite = 'images/enemy-bug-rev.png';
     } else {
         enemy.y = 225;
         enemy.speed = 100;
@@ -105,10 +168,18 @@ for (let i = 0; i <= 6; i++) {
 
     //when start (not all at the same time)
     if (spaceBetween == false) {
-        enemy.x = -100;
+        if (enemy.backwards == false) {
+            enemy.x = -100;
+        } else {
+            enemy.x = 500;
+        }
         spaceBetween = true;
     } else {
-        enemy.x = -400;
+        if (enemy.backwards == false) {
+            enemy.x = -400;
+        } else {
+            enemy.x = 800;
+        }
         spaceBetween = false;
     }
     
@@ -117,19 +188,112 @@ for (let i = 0; i <= 6; i++) {
 // Place the player object in a variable called player
 var player = new Player();
 
-
 // if they collide then the player starts from the beginning
 function checkCollisions() {
+    // collision with enemies
     for (const enemy of allEnemies) {
         if (enemy.x > (player.x -70) & (enemy.x < (player.x + 40)) & (enemy.y > (player.y - 70)) & (enemy.y < (player.y + 70))) {
-            score.innerHTML --;
+            let rip = new Rip(player.x, player.y);
+            allRip.push(rip);
+            player.changeSprite();
             player.x = 200;
             player.y = 400;
         }
     }
+
+    //collision whit gem
+    if (gem != null) {
+        if (gem.x > (player.x -70) & (gem.x < (player.x + 40)) & (gem.y > (player.y - 70)) & (gem.y < (player.y + 70))) {
+            score.innerHTML++;
+            // The gem appear again randomly on the map
+            gem.x = Math.floor(Math.random() * 4) * 100;
+            var road = Math.random()*10;
+            if (road < 3) {// 60 , 140 , 225
+                gem.y = 60;
+            } else if (road <= 7) {
+                gem.y = 140;
+            } else {
+                gem.y = 225;
+            }
+        }
+    }
 };
 
+//Gem class
+class Gem {
+    constructor(x = 100, y = 50) {
+        this.sprite = 'images/Gem-Blue.png';
+        this.x = x;
+        this.y = y;
+    };   
 
+    update(dt) {};
+
+    render () {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+}
+
+// Just a Rock on the screen
+class Rock {
+    constructor(x, y) {
+        this.sprite = 'images/Rock.png';
+        this.x = x;
+        this.y = y;
+    };
+
+    update (dt) {};
+
+    render () {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    };
+};
+
+class Rip {
+    constructor(x, y) {
+        this.sprite = 'images/rip.png';
+        this.x = x+20;
+        this.y = y+85;
+    }
+
+    update (dt) {};
+
+    render () {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    };
+}
+
+// ship class (it appear when the player reach the water)
+class Ship {
+    constructor (x, y) {
+        this.sprite = 'images/ship.png';
+        this.x = x+20;
+        this.y = y+10;
+    }
+
+    update (dt) {
+        this.x += 100*dt;
+    };
+
+    render () {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    };
+
+}
+
+//array with tombs
+let allRip = [];
+
+//two Rocks
+var rock = new Rock(100, 300);
+var rock2 = new Rock(300, 300);
+
+// Array whit rocks
+let allRocks = [rock, rock2];
+// Array whit ship
+let allShip = [];
+// creating a new gem
+let gem = new Gem();
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -143,3 +307,17 @@ document.addEventListener('keyup', function(e) {
 
     player.handleInput(allowedKeys[e.keyCode]);
 });
+
+function endGame() {
+    const modal = document.querySelector('.modal');
+    //show the score
+    modal.style.display = 'block';
+    tryAgainButton.addEventListener('click', function () {
+        //reset the game
+        player = new Player();
+        score.innerHTML = 0;
+        saved.innerHTML = 0;
+        allShip, allRip = [];
+        modal.style.display = 'none';
+    });
+}
