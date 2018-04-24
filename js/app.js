@@ -319,7 +319,7 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-//function for "the end"
+//function for "the end" part of the function taked from my old Udacity project N°3
 function endGame() {
     const modal = document.querySelector('.modal');
     //show the score
