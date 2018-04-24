@@ -1,8 +1,10 @@
 //Scores
 let score = document.querySelector('.score');
-score.innerHTML = 0;
+score.innerText = 0;
 let saved = document.querySelector('.saved');
-saved.innerHTML = 0;
+saved.innerText = 0;
+let scoreModal = document.querySelector('.score-modal');
+scoreModal.innerText = 0;
 let tryAgainButton = document.querySelector('.close-button');
 // Enemies our player must avoid
 var Enemy = function() {
@@ -34,7 +36,7 @@ Enemy.prototype.update = function(dt) {
         this.x -= this.speed*dt;
     }
 
-    
+
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
@@ -50,7 +52,9 @@ Enemy.prototype.render = function() {
 // a handleInput() method.
 class Player {
     constructor () {
+    	//index for character
         this.spriteIndex = 0;
+        // the are 5 characther to play before ending
         this.allSprite =  [
             'images/char-boy.png',
             'images/char-cat-girl.png',
@@ -58,7 +62,9 @@ class Player {
             'images/char-pink-girl.png',
             'images/char-princess-girl.png'
         ]
+        // first character
         this.sprite = this.allSprite[this.spriteIndex];
+        //initial position
         this.x = 200;
         this.y = 400;
     };
@@ -69,19 +75,24 @@ class Player {
             this.spriteIndex++;
         } else {
             this.spriteIndex = 0;
+            if ((score.innerText != 0) && (saved.innerText != 0)) {
+                scoreModal.innerText = score.innerText*saved.innerText;
+            }
+            // if the last character as died or reached the sea, the game is finish
             endGame();
-
         }
         this.sprite = this.allSprite[this.spriteIndex];
     }
-    
+
     update (dt) {
     };
 
+    // render the character
     render () {
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
     };
 
+    //movement function
     handleInput(mov) {
         let collide = false;
         switch (mov) {
@@ -91,11 +102,11 @@ class Player {
                     collide = collideWith(allRocks, this.x, this.y, 0, 0, 100, 0);
                     if (collide == false) {
                         this.y -=90;
-                    }    
+                    }
                 } else {
                     // game was won and the new player start at starting position
                     allShip.push(new Ship(this.x, this.y));
-                    saved.innerHTML++;
+                    saved.innerText++;
                     player.changeSprite();
                     this.x = 200;
                     this.y = 400;
@@ -166,7 +177,7 @@ for (let i = 0; i <= 6; i++) {
         enemy.speed = 100;
     }
 
-    //when start (not all at the same time)
+    //when the enemies start (not all at the same time)
     if (spaceBetween == false) {
         if (enemy.backwards == false) {
             enemy.x = -100;
@@ -182,7 +193,7 @@ for (let i = 0; i <= 6; i++) {
         }
         spaceBetween = false;
     }
-    
+
     allEnemies.push(enemy);
 }
 // Place the player object in a variable called player
@@ -204,7 +215,7 @@ function checkCollisions() {
     //collision whit gem
     if (gem != null) {
         if (gem.x > (player.x -70) & (gem.x < (player.x + 40)) & (gem.y > (player.y - 70)) & (gem.y < (player.y + 70))) {
-            score.innerHTML++;
+            score.innerText++;
             // The gem appear again randomly on the map
             gem.x = Math.floor(Math.random() * 4) * 100;
             var road = Math.random()*10;
@@ -225,7 +236,7 @@ class Gem {
         this.sprite = 'images/Gem-Blue.png';
         this.x = x;
         this.y = y;
-    };   
+    };
 
     update(dt) {};
 
@@ -270,7 +281,7 @@ class Ship {
         this.x = x+20;
         this.y = y+10;
     }
-
+    //movement
     update (dt) {
         this.x += 100*dt;
     };
@@ -308,6 +319,7 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
+//function for "the end"
 function endGame() {
     const modal = document.querySelector('.modal');
     //show the score
@@ -315,8 +327,9 @@ function endGame() {
     tryAgainButton.addEventListener('click', function () {
         //reset the game
         player = new Player();
-        score.innerHTML = 0;
-        saved.innerHTML = 0;
+        score.innerText = 0;
+        saved.innerText = 0;
+        scoreModal.innerText = 0;
         allShip, allRip = [];
         modal.style.display = 'none';
     });
