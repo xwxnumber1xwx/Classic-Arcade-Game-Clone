@@ -6,8 +6,20 @@ saved.innerText = 0;
 let scoreModal = document.querySelector('.score-modal');
 scoreModal.innerText = 0;
 let tryAgainButton = document.querySelector('.close-button');
+
+// Father class
+class Entity {
+    constructor (x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    render () {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    };
+}; 
+
 // Enemies our player must avoid
-var Enemy = function() {
+let Enemy = function() {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
@@ -16,6 +28,9 @@ var Enemy = function() {
     this.sprite = 'images/enemy-bug.png';
     this.backwards = false;
 };
+
+//Inherit prototype from Entity class
+Enemy.prototype = Object.create(Entity.prototype);
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
@@ -42,16 +57,12 @@ Enemy.prototype.update = function(dt) {
     // all computers.
 };
 
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
-class Player {
+class Player extends Entity{
     constructor () {
+        super (200, 400);
     	//index for character
         this.spriteIndex = 0;
         // the are 5 characther to play before ending
@@ -64,9 +75,6 @@ class Player {
         ]
         // first character
         this.sprite = this.allSprite[this.spriteIndex];
-        //initial position
-        this.x = 200;
-        this.y = 400;
     };
 
     // change character
@@ -84,12 +92,19 @@ class Player {
         this.sprite = this.allSprite[this.spriteIndex];
     }
 
-    update (dt) {
-    };
-
-    // render the character
-    render () {
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    update () {
+        //of one Charater reach the sea
+        if (this.y < 40) {
+             // one character is in safe
+             allShip.push(new Ship(this.x, this.y+90));
+             //save count increse
+             saved.innerText++;
+             //changing character
+             this.changeSprite();
+             //new character start at the starting position
+             this.x = 200;
+             this.y = 400;
+        }
     };
 
     //movement function
@@ -97,20 +112,10 @@ class Player {
         let collide = false;
         switch (mov) {
             case 'up':
-                if (this.y > 40) {
-                    //player can`t move if: Rocks collision
                     collide = collideWith(allRocks, this.x, this.y, 0, 0, 100, 0);
                     if (collide == false) {
                         this.y -=90;
                     }
-                } else {
-                    // game was won and the new player start at starting position
-                    allShip.push(new Ship(this.x, this.y));
-                    saved.innerText++;
-                    player.changeSprite();
-                    this.x = 200;
-                    this.y = 400;
-                }
                 break;
             case 'left':
                 if (this.x > 0){
@@ -197,28 +202,28 @@ for (let i = 0; i <= 6; i++) {
     allEnemies.push(enemy);
 }
 // Place the player object in a variable called player
-var player = new Player();
+let player = new Player();
 
 // if they collide then the player starts from the beginning
 function checkCollisions() {
     // collision with enemies
     for (const enemy of allEnemies) {
-        if (enemy.x > (player.x -70) & (enemy.x < (player.x + 40)) & (enemy.y > (player.y - 70)) & (enemy.y < (player.y + 70))) {
-            let rip = new Rip(player.x, player.y);
+        if (enemy.x > (this.x -70) & (enemy.x < (this.x + 40)) & (enemy.y > (this.y - 70)) & (enemy.y < (this.y + 70))) {
+            let rip = new Rip(this.x, this.y);
             allRip.push(rip);
-            player.changeSprite();
-            player.x = 200;
-            player.y = 400;
+            this.changeSprite();
+            this.x = 200;
+            this.y = 400;
         }
     }
 
     //collision whit gem
     if (gem != null) {
-        if (gem.x > (player.x -70) & (gem.x < (player.x + 40)) & (gem.y > (player.y - 70)) & (gem.y < (player.y + 70))) {
+        if (gem.x > (this.x -70) & (gem.x < (this.x + 40)) & (gem.y > (this.y - 70)) & (gem.y < (this.y + 70))) {
             score.innerText++;
             // The gem appear again randomly on the map
             gem.x = Math.floor(Math.random() * 4) * 100;
-            var road = Math.random()*10;
+            let road = Math.random()*10;
             if (road < 3) {// 60 , 140 , 225
                 gem.y = 60;
             } else if (road <= 7) {
@@ -296,8 +301,8 @@ class Ship {
 let allRip = [];
 
 //two Rocks
-var rock = new Rock(100, 300);
-var rock2 = new Rock(300, 300);
+let rock = new Rock(100, 300);
+let rock2 = new Rock(300, 300);
 
 // Array whit rocks
 let allRocks = [rock, rock2];
@@ -309,7 +314,7 @@ let gem = new Gem();
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
+    let allowedKeys = {
         37: 'left',
         38: 'up',
         39: 'right',

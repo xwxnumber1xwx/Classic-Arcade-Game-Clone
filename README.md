@@ -2,10 +2,15 @@
 
 ## Table of Contents
 
-* [How to play](#How-to-play)
-* [How to earn points](#How-to-earn-points)
-* [End of the game](#End-of-the-game)
+* [How to start the game locally](#how-to-start-the-game-locally)
+* [How to play](#how-to-play)
+* [How to earn points](#how-to-earn-points)
+* [End of the game](#end-of-the-game)
 * [MIT License](#mit-license)
+
+## How to start the game locally
+
+If you want to start the game locally, you just need to download all the file in one folder and click two times on the file "index.html"
 
 ## How to play
 
